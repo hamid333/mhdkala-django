@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% load humanize %}
+
+{% load static %}
+
+{% block content %}
+
+
+<section class="section-content padding-y bg">
+    <div class="container" style="text-align: center; max-width: 1300px;">
+
+        <!-- ============================ COMPONENT 1 ================================= -->
+        {% if not cart_items %}
+        <i class="fas fa-shopping-basket" style="font-size: 260px;"></i>
+        <h2 style="text-align: center;direction: rtl;font-size: 14px;"> سبد خرید شما خالی است! </h2>
+        <br>
+        <h2 style="text-align: center;font-size: 12px;direction: rtl;color: #7c8771;"> می‌توانید برای مشاهده محصولات بیشتر به صفحات زیر بروید  </h2>
+        <br>
+        <div class="text-conter" style="text-align: center;font-size: 12px;">
+            <a href="{% url 'store' %}" class="btn btn-success"> محصولات فروشگاه </a>
+        </div>
+        {%else%}
+        <div class="row" style="direction: rtl; text-align: right;">
+            <aside class="col-lg-9">
+                <div class="card">
+                    <table class="table table-borderless table-shopping-cart">
+                        <thead class="text-muted">
+                            <tr class="small text-uppercase" style="text-align: center;">
+                                <th scope="col">محصول</th>
+                                <th scope="col" width="120">تعداد</th>
+                                <th scope="col" width="120">قیمت</th>
+                                <th scope="col" class="text-right" width="200"> </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cart_item in cart_items %}
+                            <tr>
+                                <td>
+                                    <figure class="itemside align-items-center">
+                                        <div class="aside"><img src="{{ cart_item.product.images.url  }}"
+                                                class="img-sm"></div>
+                                        <figcaption class="info">
+                                            <a href="{{ cart_item.product.get_url }}" class="title text-dark" style="width: 300px;">
+                                                {{ cart_item.product.product_name }} </a>
+                                            <p class="text-muted small">
+                                                
+                                                {% if cart_item.variations.all %}
+                                                    {% for item in cart_item.variations.all %}
+                                                        {{ item.variation_category | capfirst }} : {{ item.variation_name | capfirst }} <br>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </p>
+                                        </figcaption>
+                                    </figure>
+                                </td>
+                                <td>
+                                    <!-- col.// -->
+                                    <div class="col" style="direction: ltr;">
+                                        <div class="input-group input-spinner">
+                                            <div class="input-group-prepend">
+                                                <a href="{% url 'remove_cart' cart_item.product.id cart_item.id %}" class="btn btn-light" type="button" id="button-plus"> <i
+                                                        class="fa fa-minus"></i> </a>
+                                            </div>
+                                            <input type="text" class="form-control" readonly value="{{ cart_item.quantity }}">
+                                            <div class="input-group-append">
+                                                <form method="post" action="{% url 'add_cart' cart_item.product.id %}">
+                                                    {% csrf_token %}
+                                                    {% for item in cart_item.variations.all %}
+                                                        <input type="hidden" name="{{ item.variation_category | lower }}" value="{{ item.variation_value | capfirst }}">
+                                                       
+                                                    {% endfor %}
+                                                    <button class="btn btn-light" type="submit" id="button-minus"> <i class="fa fa-plus"></i> </button> 
+                                                </form>
+                                                
+                                            </div>
+                                        </div> <!-- input-group.// -->
+                                    </div> <!-- col.// -->
+                                </td>
+                                <td style="font-size: 14px;">
+                                    <div class="price-wrap" style="width: 160px;">
+                                        <var class="price">مبلغ کل : {{ cart_item.sub_totla |intcomma:False }} ریال
+                                        </var>
+                                        <small class="text-muted">هر واحد {{ cart_item.product.price |intcomma:False }}
+                                            ریال </small>
+                                    </div> <!-- price-wrap .// -->
+                                </td>
+                                <td class="text-right">
+                                    <a href="{% url 'remove_cart_item' cart_item.product.id cart_item.id %}" class="btn btn-danger"
+                                        onclick="return confirm('آیا مطمئن هستید که میخواهید محصول را از سبد خرید حذف کنید ؟ ')" style="float: left;">
+                                        <li class="fa fa-trash"></li> حذف
+                                    </a>
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div> <!-- card.// -->
+
+            </aside> <!-- col.// -->
+            <aside class="col-lg-3">
+
+                <div class="card">
+                    <div class="card-body" style="font-size: 14px;">
+                        <dl class="dlist-align">
+                            <dt style="width: 100px;"> قیمت محصولات : </dt>
+                            <dd class="text-right"> ریال {{ total |intcomma:False }}</dd>
+                        </dl>
+                        <dl class="dlist-align">
+                            <dt style="width: 100px;"> مالیات : </dt>
+                            <dd class="text-right"> ریال {{ tax |intcomma:False }}</dd>
+                        </dl>
+                        <hr>
+                        <dl class="dlist-align">
+                            <dt style="width: 100px;"> جمع کل: </dt>
+                            <dd class="text-right text-dark b"><strong> ریال {{ grand_totla |intcomma:False }}</strong>
+                            </dd>
+                        </dl>
+                        <hr>
+                        <p>
+                            هزینه‌ی ارسال در ادامه بر اساس آدرس، زمان و نحوه‌ی ارسال انتخابی شما‌ محاسبه و به این مبلغ
+                            اضافه خواهد شد
+                        </p>
+                        <hr>
+                        <p class="text-center mb-3">
+                            <img src="{% static './images/misc/payments.png' %}" height="26">
+                        </p>
+                        <a href="./place-order.html" class="btn btn-primary btn-block"> بررسی </a>
+                        <a href="{% url 'store' %}" class="btn btn-light btn-block">ادامه فرآیند خرید </a>
+                    </div> <!-- card-body.// -->
+                </div> <!-- card.// -->
+
+            </aside> <!-- col.// -->
+
+
+        </div> <!-- row.// -->
+        <!-- ============================ COMPONENT 1 END .// ================================= -->
+        {% endif %}
+    </div> <!-- container .//  -->
+</section>
+<!-- ========================= SECTION CONTENT END// ========================= -->
+
+{% endblock %}
